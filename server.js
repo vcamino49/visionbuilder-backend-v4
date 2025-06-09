@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const multer = require('multer');
-const { Configuration, OpenAIApi } = require('openai');
+const OpenAI = require('openai');
 const cloudinary = require('cloudinary').v2;
 const fs = require('fs');
 require('dotenv').config();
@@ -24,10 +24,9 @@ cloudinary.config({
   api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
-const configuration = new Configuration({
+const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY
 });
-const openai = new OpenAIApi(configuration);
 
 app.post('/api/upload', upload.single('image'), async (req, res) => {
   const filePath = req.file.path;
@@ -45,20 +44,19 @@ app.post('/api/upload', upload.single('image'), async (req, res) => {
 });
 
 app.post('/api/generate', async (req, res) => {
-  const { prompt, imageUrl } = req.body;
+  const { prompt } = req.body;
 
   try {
-    const response = await openai.createImage({
+    const response = await openai.images.generate({
       prompt,
       n: 1,
-      size: "512x512",
-      response_format: "url"
+      size: "512x512"
     });
 
-    const image_url = response.data.data[0].url;
+    const image_url = response.data[0].url;
     res.json({ text: `Generated for prompt: "${prompt}"`, image_url });
   } catch (err) {
-    console.error('OpenAI Error:', err.response?.data || err.message);
+    console.error('OpenAI Error:', err);
     res.status(500).json({ error: 'Image generation failed' });
   }
 });
