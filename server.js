@@ -48,12 +48,13 @@ app.post('/api/generate', async (req, res) => {
 
   try {
     const response = await openai.images.generate({
+      model: "dall-e-3",
       prompt,
       n: 1,
-      size: "512x512"
+      size: "1024x1024"
     });
 
-    const image_url = response.data[0].url;
+    const image_url = response.data[0]?.url;
     res.json({ text: `Generated for prompt: "${prompt}"`, image_url });
   } catch (err) {
     console.error('OpenAI Error:', err);
